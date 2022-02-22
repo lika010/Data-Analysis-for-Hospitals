@@ -1,0 +1,53 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+pd.set_option('display.max_columns', 14)
+
+general_df = pd.read_csv('test/general.csv')
+prenatal_df = pd.read_csv('test/prenatal.csv')
+sport_df = pd.read_csv('test/sports.csv')
+
+prenatal_df.rename(columns = {'HOSPITAL': 'hospital', 'Sex': 'gender'}, inplace=True)
+sport_df.rename(columns = {'Hospital': 'hospital', 'Male/female': 'gender'}, inplace=True)
+
+hospitals_df = pd.concat([general_df, prenatal_df, sport_df], ignore_index = True)
+
+hospitals_df.drop(columns=['Unnamed: 0'], inplace=True)
+hospitals_df.dropna(axis=0, how='all',  inplace=True)
+
+hospitals_df['gender'] = hospitals_df['gender'].replace(to_replace=['female', 'woman'], value='f')
+hospitals_df['gender'] = hospitals_df['gender'].replace(to_replace=['male', 'man'], value='m')
+
+hospitals_df['gender'].fillna('f', inplace=True)
+
+hospitals_df.fillna({'bmi': 0, 'diagnosis': 0, 'blood_test': 0, 'ecg': 0, 'ultrasound': 0, 'mri': 0,
+                  'xray': 0, 'children': 0, 'months': 0}, inplace=True)
+
+stomac_related_df = hospitals_df.loc[hospitals_df.hospital == 'general'].loc[hospitals_df.diagnosis == 'stomach']
+stomac_related_per = stomac_related_df.shape[0] / hospitals_df.loc[hospitals_df.hospital == 'general'].shape[0]
+
+dis_related_df = hospitals_df.loc[hospitals_df.hospital == 'sports'].loc[hospitals_df.diagnosis == 'dislocation']
+dis_related_per = dis_related_df.shape[0] /hospitals_df.loc[hospitals_df.hospital == 'sports'].shape[0]
+
+sports = hospitals_df.loc[hospitals_df.hospital == 'sports']
+general = hospitals_df.loc[hospitals_df.hospital == 'general']
+dif_age = general.age.median() - sports.age.median()
+
+prenatal = hospitals_df.loc[hospitals_df.hospital == 'prenatal']
+
+hospitals_df.plot(y='age', kind='hist', bins=[0, 15, 35, 55, 70, 80])
+plt.show()
+hospitals_df['diagnosis'].value_counts().plot(kind='pie')
+plt.show()
+fig, axes = plt.subplots()
+axes.violinplot(dataset=hospitals_df['height'].values)
+plt.show()
+#print("""The answer to the 1st question is general
+#The answer to the 2nd question is 0.325
+#The answer to the 3rd question is 0.285
+#The answer to the 4th question is 19
+#The answer to the 5th question is prenatal, 325 blood tests""")
+
+print("""The answer to the 1st question: 15-35
+The answer to the 2nd question: pregnancy
+The answer to the 3rd question: It's because there are 2 big group babys from prenatal hospital and adults from other hospitals""")
